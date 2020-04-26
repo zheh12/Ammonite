@@ -16,6 +16,12 @@ final class CustomURLZipArchive(val url: java.net.URL) extends AbstractFile with
 
   def file: java.io.File = null
 
+  // hack to fix spring boot
+  val springBootInfoPath = "BOOT-INF.classes"
+  val isSpringBootClassFile = {
+    url.getFile != null && url.getFile.contains(springBootInfoPath.replace('.', '/'))
+  }
+
   private def dirPath(path: String)  = path.split('/').toSeq.filter(_.nonEmpty)
   private def dirName(path: String)  = splitPath(path, front = true)
   private def baseName(path: String) = splitPath(path, front = false)
@@ -169,11 +175,22 @@ final class CustomURLZipArchive(val url: java.net.URL) extends AbstractFile with
   }
 
 
-  def allDirsByDottedName: collection.Map[String, DirEntry] = {
-    dirs.map {
-      case (k, v) =>
-        k.mkString(".") -> v
+  lazy val allDirsByDottedName: collection.Map[String, DirEntry] = {
+    val map = collection.mutable.HashMap[String, DirEntry]()
+    dirs.foreach {
+      case (k, v) => {
+        val path = k.mkString(".")
+        if (isSpringBootClassFile) {
+          if(path.startsWith(springBootInfoPath) && path != springBootInfoPath) {
+            val newPath = path.substring(springBootInfoPath.length + 1)
+            map(newPath) = v
+          }
+        } else {
+          map(path) = v
+        }
+      }
     }
+    map.toMap
   }
 
 }

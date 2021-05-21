@@ -419,7 +419,7 @@ object amm extends Cross[MainModule](fullCrossScalaVersions:_*){
     def moduleDeps = Seq(ops(), amm.util(), amm.runtime(), amm.compiler.interface())
     def crossFullScalaVersion = true
     def ivyDeps = Agg(
-      Deps.bsp4j,
+      Deps.bsp4j.excludeOrg("com.google.guava"),
       withDottyCompat(Deps.fastparse, scalaVersion()),
       withDottyCompat(Deps.trees, scalaVersion()),
       Deps.scalaReflect(scalaVersion()),
